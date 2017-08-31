@@ -1,0 +1,10 @@
+Antonio M Filho
+Diego Carvalho
+
+TP1 - COMPILADORES
+
+Comandos
+
+$ python AnalisadorLexico.py
+
+Será criada a saida out.txt com a tabela de tokens do arquivo de exemplo.

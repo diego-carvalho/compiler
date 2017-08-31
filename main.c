@@ -1,8 +1,8 @@
-#include <stdio.h>
-
 
 int main()
 {
+      int vint = 120;
+      float vfloat = 2.5;
       int a, b, c;
       a = 1;
       b = 1;
@@ -10,9 +10,15 @@ int main()
 
       if (c == 1){
             a = a + b;
+      }else{
+            a = 45.55;
       }
 
-      if (c != 1) or (c !! 1) or (c <= 1){
+      while(1){
+            a = 3;
+      }
+
+      if (c != 1) || (c == 1) || (c <= 12.67){
             a = a + b;
       }
 

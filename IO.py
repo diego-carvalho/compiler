@@ -10,7 +10,7 @@ class Char():
 		self.line = line
 
 	def __str__(self):
-		return "" + self.char
+		return "char [ char: " + self.char + ", line: " + str(self.line)
 
 	def __repr__(self):
 		return "" + self.char
