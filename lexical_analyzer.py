@@ -5,7 +5,7 @@ import sys
 import string
 
 from IO import IO
-from Token import Token
+from classes.token import Token
 
 # Símbolos aceitos e palavras reservadas.
 
@@ -142,9 +142,14 @@ def lexicalAnalyzer(char, file):
         addToken(token)
 
 
-# Main
+# Get tokens out
+def getOut():
+    return tokens, program
 
-if __name__ == '__main__':
+
+# Run AnalisadorLexico
+
+def run():
 
     file = IO('main.c')
     char = file.getNextChar()
@@ -152,7 +157,5 @@ if __name__ == '__main__':
         lexicalAnalyzer(char, file)
         char = file.getNextChar()
 
-    file_out = open("out.txt", 'w')
-    file_out.write(" ".join(program))
-
-    print(tokens)
+    # file_out = open("out.txt", 'w')
+    # file_out.write(" ".join(program))
