@@ -1,5 +1,3 @@
-
-
 from classes.token import Token
 
 
@@ -8,9 +6,18 @@ class Token_vector:
         self.tokens = tokens
         self.itr = 0
 
+    def __len__(self):
+        return len(self.tokens)
 
-def print_syntactic_error(token):
-    print("%s esperado na linha %d" % (token.name, int(token.line)))
+    def pop(self, pos):
+        return self.tokens.pop(pos)
+
+    def append(self, obj):
+        self.tokens.append(obj)
+
+
+def print_syntactic_error(token, tk):
+    print('Ocorre um erro sintático, token esperado ' + tk + ', token encontrado: ' + str(token))
 
 
 def get_token(list_tokens):
@@ -23,6 +30,14 @@ def get_next_token(list_tokens):
     list_tokens.itr += 1
     return token
 
+def match(list_tokens, tk):
+    if get_token(list_tokens).lexical == tk:
+        print('token reconhecido: ' + str(get_token(list_tokens)))
+        get_next_token(list_tokens)
+    else:
+        print('Ocorre um erro sintático, token esperado ' + tk + ', token encontrado: ' + str(get_token(list_tokens)))
+        get_next_token(list_tokens)
+
 
 def program(list_tokens):
     if len(list_tokens) <= 6:
@@ -30,26 +45,40 @@ def program(list_tokens):
         return
     token = list_tokens.pop(0)
     if token.lexical != 'INT':
-        print_syntactic_error(token)
+        print_syntactic_error(token, 'INT')
+    else:
+        print('token reconhecido: ' + str(token))
     token = list_tokens.pop(0)
-    if token.lexical == 'MAIN':
-        print_syntactic_error(token)
+    if token.lexical != 'MAIN':
+        print_syntactic_error(token, 'MAIN')
+    else:
+        print('token reconhecido: ' + str(token))
     token = list_tokens.pop(0)
-    if token.lexical == 'LBRACKET':
-        print_syntactic_error(token) 
+    if token.lexical != 'LBRACKET':
+        print_syntactic_error(token, 'LBRACKET')
+    else:
+        print('token reconhecido: ' + str(token))
     token = list_tokens.pop(0)
-    if token.lexical == 'RBRACKET':
-        print_syntactic_error(token) 
+    if token.lexical != 'RBRACKET':
+        print_syntactic_error(token, 'RBRACKET')
+    else:
+        print('token reconhecido: ' + str(token))
     token = list_tokens.pop(0)
-    if token.lexical == 'LBRACE':
-        print_syntactic_error(token)
+    if token.lexical != 'LBRACE':
+        print_syntactic_error(token, 'LBRACE')
+    else:
+        print('token reconhecido: ' + str(token))
     # get penultimate token in my program and verify if is equal to }
     token = list_tokens.pop(len(list_tokens) - 1)
-    if token.lexical == 'RBRACE':
-        print_syntactic_error(token)
+    if token.lexical != 'RBRACE':
+        print_syntactic_error(token, 'RBRACE')
+    else:
+        print('token reconhecido: ' + str(token))
     
     new_token = Token('eof', 'EOF', token.line)
     list_tokens.append(new_token)
+
+    print(list_tokens.tokens)
 
     decl_command(list_tokens)
 
@@ -58,7 +87,7 @@ def decl_command(list_tokens):
     if get_token(list_tokens).lexical == 'INT' or get_token(list_tokens).lexical == 'FLOAT':
         declaration(list_tokens)
         decl_command(list_tokens)
-    elif get_token(list_tokens).lexical == 'NSEI':
+    elif get_token(list_tokens).lexical in ['LBRACE', 'ID', 'IF', 'WHILE', 'READ', 'PRINT']:
         command(list_tokens)
         decl_command(list_tokens)
     elif get_token(list_tokens).lexical == 'EOF':
@@ -112,7 +141,7 @@ def command(list_tokens):
 
 def block(list_tokens):
     match(list_tokens, 'LBRACE')
-    command(list_tokens)
+    decl_command(list_tokens)
     match(list_tokens, 'RBRACE')
 
 
@@ -175,7 +204,7 @@ def expression_opc(list_tokens):
 
 
 def conjunction(list_tokens):
-    match(list_tokens, 'EQ')
+    equality(list_tokens)
     conjunction_opc(list_tokens)
 
 
@@ -229,9 +258,9 @@ def op_rel(list_tokens):
         match(list_tokens, 'GT')
     elif get_token(list_tokens).lexical == 'GE':
         match(list_tokens, 'GE')
-    else:
+    """else:
         print("Ocorreu um erro sintático, token esperado LT, LE, GT ou GE: " + str(get_token(list_tokens)))
-        get_next_token(list_tokens)
+        get_next_token(list_tokens)"""
 
 
 def addition(list_tokens):
@@ -281,24 +310,14 @@ def op_mult(list_tokens):
 def factor(list_tokens):
     if get_token(list_tokens).lexical == 'ID':
         match(list_tokens, 'ID')
-    if get_token(list_tokens).lexical == 'INT':
-        match(list_tokens, 'INT')
-    if get_token(list_tokens).lexical == 'FLOAT':
-        match(list_tokens, 'FLOAT')
+    if get_token(list_tokens).lexical == 'INTEGER_CONST':
+        match(list_tokens, 'INTEGER_CONST')
+    if get_token(list_tokens).lexical == 'FLOAT_CONST':
+        match(list_tokens, 'FLOAT_CONST')
     if get_token(list_tokens).lexical == 'LBRACKET':
         match(list_tokens, 'LBRACKET')
         expression(list_tokens)
         match(list_tokens, 'RBRACKET')
-
-
-
-def match(list_tokens, tk):
-    if get_token(list_tokens).lexical == tk:
-        print('token reconhecido: ' + str(get_token(list_tokens)))
-        get_next_token(list_tokens)
-    else:
-        print('Ocorre um erro sintático, token esperado ' + tk + ', token encontrado: ' + str(get_token(list_tokens)))
-        get_next_token(list_tokens)
 
 
 def run(tokens):
