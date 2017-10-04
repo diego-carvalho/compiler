@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from classes.token import Token
 
 
@@ -34,6 +36,7 @@ def match(list_tokens, tk):
     if get_token(list_tokens).lexical == tk:
         print('token reconhecido: ' + str(get_token(list_tokens)))
         get_next_token(list_tokens)
+
     else:
         print('Ocorre um erro sintático, token esperado ' + tk + ', token encontrado: ' + str(get_token(list_tokens)))
         get_next_token(list_tokens)
@@ -243,7 +246,7 @@ def relationship(list_tokens):
 
 
 def relationship_opc(list_tokens):
-    if get_token(list_tokens).lexical == 'EQ' or get_token(list_tokens).lexical == 'NE':
+    if get_token(list_tokens).lexical in ['LT', 'LE', 'GT', 'GE']:
         op_rel(list_tokens)
         relationship(list_tokens)
         relationship_opc(list_tokens)
@@ -310,11 +313,11 @@ def op_mult(list_tokens):
 def factor(list_tokens):
     if get_token(list_tokens).lexical == 'ID':
         match(list_tokens, 'ID')
-    if get_token(list_tokens).lexical == 'INTEGER_CONST':
+    elif get_token(list_tokens).lexical == 'INTEGER_CONST':
         match(list_tokens, 'INTEGER_CONST')
-    if get_token(list_tokens).lexical == 'FLOAT_CONST':
+    elif get_token(list_tokens).lexical == 'FLOAT_CONST':
         match(list_tokens, 'FLOAT_CONST')
-    if get_token(list_tokens).lexical == 'LBRACKET':
+    elif get_token(list_tokens).lexical == 'LBRACKET':
         match(list_tokens, 'LBRACKET')
         expression(list_tokens)
         match(list_tokens, 'RBRACKET')
