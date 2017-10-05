@@ -1,5 +1,7 @@
 # coding: utf-8
 
+
+import classes.ast as tree
 from classes.token import Token
 
 
@@ -10,9 +12,6 @@ class Token_vector:
 
     def __len__(self):
         return len(self.tokens)
-
-    def pop(self, pos):
-        return self.tokens.pop(pos)
 
     def append(self, obj):
         self.tokens.append(obj)
@@ -46,56 +45,35 @@ def program(list_tokens):
     if len(list_tokens) <= 6:
         print("Seu programa não contém a estrutura correta para a primeira linha em c")
         return
-    token = list_tokens.pop(0)
-    if token.lexical != 'INT':
-        print_syntactic_error(token, 'INT')
-    else:
-        print('token reconhecido: ' + str(token))
-    token = list_tokens.pop(0)
-    if token.lexical != 'MAIN':
-        print_syntactic_error(token, 'MAIN')
-    else:
-        print('token reconhecido: ' + str(token))
-    token = list_tokens.pop(0)
-    if token.lexical != 'LBRACKET':
-        print_syntactic_error(token, 'LBRACKET')
-    else:
-        print('token reconhecido: ' + str(token))
-    token = list_tokens.pop(0)
-    if token.lexical != 'RBRACKET':
-        print_syntactic_error(token, 'RBRACKET')
-    else:
-        print('token reconhecido: ' + str(token))
-    token = list_tokens.pop(0)
-    if token.lexical != 'LBRACE':
-        print_syntactic_error(token, 'LBRACE')
-    else:
-        print('token reconhecido: ' + str(token))
-    # get penultimate token in my program and verify if is equal to }
-    token = list_tokens.pop(len(list_tokens) - 1)
-    if token.lexical != 'RBRACE':
-        print_syntactic_error(token, 'RBRACE')
-    else:
-        print('token reconhecido: ' + str(token))
-    
-    new_token = Token('eof', 'EOF', token.line)
+    match(list_tokens, 'INT')
+    match(list_tokens, 'MAIN')
+    match(list_tokens, 'LBRACKET')
+    match(list_tokens, 'RBRACKET')
+    match(list_tokens, 'LBRACE')
+    new_token = Token('eof', 'EOF', (list_tokens.tokens[len(list_tokens.tokens) - 1].line + 1))
     list_tokens.append(new_token)
 
-    print(list_tokens.tokens)
+    root = tree.ASTnode('MAIN', None)
+    current_node = root
 
     decl_command(list_tokens)
+
+    match(list_tokens, 'RBRACE')
+    if get_token(list_tokens).lexical == 'EOF':
+        match(list_tokens, 'EOF')
+        print('Fim da análise sintática.')
 
 
 def decl_command(list_tokens):
     if get_token(list_tokens).lexical == 'INT' or get_token(list_tokens).lexical == 'FLOAT':
         declaration(list_tokens)
         decl_command(list_tokens)
+        node = tree.ASTnode(name, father)
     elif get_token(list_tokens).lexical in ['LBRACE', 'ID', 'IF', 'WHILE', 'READ', 'PRINT']:
         command(list_tokens)
         decl_command(list_tokens)
-    elif get_token(list_tokens).lexical == 'EOF':
-        match(list_tokens, 'EOF')
-        print('Fim da análise sintática.')
+
+    return node
 
 
 def declaration(list_tokens):
@@ -322,6 +300,8 @@ def factor(list_tokens):
         expression(list_tokens)
         match(list_tokens, 'RBRACKET')
 
+# variables used in all program
+current_node = None
 
 def run(tokens):
     list_tokens = Token_vector(tokens)
