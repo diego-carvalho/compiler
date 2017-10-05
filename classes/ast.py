@@ -11,3 +11,9 @@ class ASTnode:
 
     def __repr__(self):
         return "AST : [" +self.name+ " : [" +", ".join(self.children)+ "]]"
+
+    def set_father(self, father):
+        self.father = father
+
+    def set_children(self, children):
+        self.children = children
