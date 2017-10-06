@@ -78,8 +78,10 @@ def decl_command(list_tokens):
             node_opc.set_children(node_d)
             node_d.set_father(node_opc)
             return node_opc
+            print(node_opc)
         else:
             return node_d
+            print(node_d)
     elif get_token(list_tokens).lexical in ['LBRACE', 'ID', 'IF', 'WHILE', 'READ', 'PRINT']:
         node_c = command(list_tokens)
         node_opc = decl_command(list_tokens)
@@ -114,6 +116,8 @@ def decl2(list_tokens):
         node_op = match(list_tokens, 'ATTR')
         node_e = expression(list_tokens)
         decl2(list_tokens)
+        if node_op:
+            node = tree.Assing('Assing', node_e)
         node_op.set_children(node_e)
         node_e.set_father(node_op)
         return node_op
@@ -132,7 +136,8 @@ def op_type(list_tokens):
 
 def command(list_tokens):
     if get_token(list_tokens).lexical == 'LBRACE':
-        block(list_tokens)
+        node_b = block(list_tokens)
+        return node_b
     if get_token(list_tokens).lexical == 'ID':
         attribution(list_tokens)
     if get_token(list_tokens).lexical == 'IF':
@@ -147,8 +152,9 @@ def command(list_tokens):
 
 def block(list_tokens):
     match(list_tokens, 'LBRACE')
-    decl_command(list_tokens)
+    node_decl = decl_command(list_tokens)
     match(list_tokens, 'RBRACE')
+    return node_decl
 
 
 def attribution(list_tokens):
@@ -159,18 +165,25 @@ def attribution(list_tokens):
 
 
 def command_if(list_tokens):
-    match(list_tokens, 'IF')
+    node_if = match(list_tokens, 'IF')
     match(list_tokens, 'LBRACKET')
-    expression(list_tokens)
+    node_e = expression(list_tokens)
     match(list_tokens, 'RBRACKET')
-    command(list_tokens)
-    command_else(list_tokens)
+    node_c = command(list_tokens)
+    node_else = command_else(list_tokens)
+    if node_else:
+        node_if = tree.IF('IF', node_e, node_c, node_else, None)
+    else:
+        node_if = tree.IF('IF', node_e, node_c, None, None)
+    return node_if
 
 
 def command_else(list_tokens):
     if get_token(list_tokens).lexical == 'ELSE':
         match(list_tokens, 'ELSE')
-        command(list_tokens)
+        node_c = command(list_tokens)
+        return node_c
+    return None
 
 
 def command_while(list_tokens):
@@ -234,12 +247,17 @@ def conjunction(list_tokens):
     return node_e
 
 
-# FALTA RESOLVER ISSO, PRECISO DO SLIDE POR QUE TA ESTRANHO
 def conjunction_opc(list_tokens):
     if get_token(list_tokens).lexical == 'AND':
-        match(list_tokens, 'AND')
-        match(list_tokens, 'EQ')
-        conjunction_opc(list_tokens)
+        node_op = match(list_tokens, 'AND')
+        node_e = equality(list_tokens)
+        node_opc = conjunction_opc(list_tokens)
+        if node_opc:
+            node_op.set_children(node_opc)
+            node_opc.set_father(node_op)
+        node_op.set_children(node_e)
+        node_e.set_father(node_op)
+        return node_op
     return None
 
 
@@ -255,19 +273,28 @@ def equality(list_tokens):
 
 def equality_opc(list_tokens):
     if get_token(list_tokens).lexical == 'EQ' or get_token(list_tokens).lexical == 'NE':
-        op_equal(list_tokens)
-        relationship(list_tokens)
-        equality_opc(list_tokens)
+        node_op = op_equal(list_tokens)
+        node_rel = relationship(list_tokens)
+        node_opc = equality_opc(list_tokens)
+        if node_opc:
+            node_op.set_children(node_opc)
+            node_opc.set_father(node_op)
+        node_op.set_children(node_rel)
+        node_rel.set_father(node_op)
+        return node_op
+    return None
 
 
 def op_equal(list_tokens):
+    node = None
     if get_token(list_tokens).lexical == 'EQ':
-        match(list_tokens, 'EQ')
+        node = match(list_tokens, 'EQ')
     elif get_token(list_tokens).lexical == 'NE':
-        match(list_tokens, 'NE')
+        node = match(list_tokens, 'NE')
     else:
         print("Ocorreu um erro sintático, token esperado EQ ou NE: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
+    return node
 
 
 def relationship(list_tokens):
@@ -308,8 +335,10 @@ def op_rel(list_tokens):
 
 
 def addition(list_tokens):
+    # 4 + 5
+    # 4
     node_term = term(list_tokens)
-    # if + x or - x
+    # + 5
     node_add = addition_opc(list_tokens)
     if node_add:
         node_add.set_children(node_term)
@@ -320,19 +349,26 @@ def addition(list_tokens):
 
 def addition_opc(list_tokens):
     if get_token(list_tokens).lexical == 'PLUS' or get_token(list_tokens).lexical == 'MINUS':
-        op_addition(list_tokens)
-        term(list_tokens)
-        addition_opc(list_tokens)
+        # +
+        node_op = op_addition(list_tokens)
+        # 5
+        node_term = term(list_tokens)
+        node_opc = addition_opc(list_tokens)
+        if node_opc:
+            pass
+        
 
 
 def op_addition(list_tokens):
+    node = None
     if get_token(list_tokens).lexical == 'PLUS':
-        match(list_tokens, 'PLUS')
+        node = match(list_tokens, 'PLUS')
     elif get_token(list_tokens).lexical == 'MINUS':
-        match(list_tokens, 'MINUS')
+        node = match(list_tokens, 'MINUS')
     else:
         print("Ocorreu um erro sintático, token esperado PLUS ou MINUS: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
+    return node
 
 
 def term(list_tokens):
