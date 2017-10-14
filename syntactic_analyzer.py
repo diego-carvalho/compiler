@@ -227,15 +227,16 @@ def expression_opc(list_tokens):
         node = match(list_tokens, 'OR')
         node_con = conjunction(list_tokens)
         node_opc = expression_opc(list_tokens)
-        if node_opc:
-            node_opc.set_children(node_con)
-            node_con.set_father(node_opc)
-            node.set_children(node_opc)
-            node_opc.set_father(node)
-        else:
-            node.set_children(node_con)
-            node_con.set_father(node)
-        return node
+        if node:
+            if node_opc:
+                node_opc.set_children(node_con)
+                node_con.set_father(node_opc)
+                node.set_children(node_opc)
+                node_opc.set_father(node)
+            else:
+                node.set_children(node_con)
+                node_con.set_father(node)
+            return node
     return None
 
 
@@ -319,8 +320,10 @@ def relationship_opc(list_tokens):
         if node_opc:
             node_op.set_children(node_opc)
             node_opc.set_father(node_op)
-        node_op.set_children(node_rel)
-        node_rel.set_father(node_op)
+        if node_op:
+            node_op.set_children(node_rel)
+        if node_rel:
+            node_rel.set_father(node_op)
         return node_op
     return None
 

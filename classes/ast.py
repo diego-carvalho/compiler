@@ -21,7 +21,7 @@ class ASTnode:
 
 class IF(ASTnode):
     def __init__(self, name, cond, cond_true, cond_false, father):
-        ASTnode.__init__(self, name)
+        ASTnode.__init__(self, name, father)
         self.children.append(cond)
         self.children.append(cond_true)
         self.children.append(cond_false)
