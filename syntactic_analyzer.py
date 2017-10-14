@@ -38,6 +38,18 @@ def match(list_tokens, tk):
 
         if get_token(list_tokens).lexical in ['INTEGER_CONST', 'FLOAT_CONST']:
             node = tree.ASTnode(get_token(list_tokens).name, None)
+        elif get_token(list_tokens).lexical in ['ATTR']:
+            node = tree.ASTnode('Attr', None)
+        elif get_token(list_tokens).lexical in ['IF']:
+            node = tree.ASTnode('If', None)
+        elif get_token(list_tokens).lexical in ['WHILE']:
+            node = tree.ASTnode('While', None)
+        elif get_token(list_tokens).lexical in ['PLUS', 'MINUS']:
+            node = tree.ASTnode('ArithOp', None)
+        elif get_token(list_tokens).lexical in ['EQ', 'NE', 'OR', 'AND', 'LE']:
+            node = tree.ASTnode('LogicalOp', None)
+        elif get_token(list_tokens).lexical in ['ID']:
+            node = tree.ASTnode('ID', None)
 
         get_next_token(list_tokens)
 
@@ -45,7 +57,6 @@ def match(list_tokens, tk):
         print('Ocorre um erro sintático, token esperado ' + tk + ', token encontrado: ' + str(get_token(list_tokens)))
         get_next_token(list_tokens)
     return node
-
 
 def program(list_tokens):
     if len(list_tokens) <= 6:
@@ -59,7 +70,7 @@ def program(list_tokens):
     new_token = Token('eof', 'EOF', (list_tokens.tokens[len(list_tokens.tokens) - 1].line + 1))
     list_tokens.append(new_token)
 
-    root = tree.ASTnode('MAIN', None)
+    root = tree.ASTnode('ASTNode', None)
     current_node = root
 
     root.set_children(decl_command(list_tokens))
@@ -67,6 +78,8 @@ def program(list_tokens):
     match(list_tokens, 'RBRACE')
     if get_token(list_tokens).lexical == 'EOF':
         match(list_tokens, 'EOF')
+        print("AST:")
+        root.print()
         print('Fim da análise sintática.')
 
 
@@ -78,10 +91,8 @@ def decl_command(list_tokens):
             node_opc.set_children(node_d)
             node_d.set_father(node_opc)
             return node_opc
-            print(node_opc)
         else:
             return node_d
-            print(node_d)
     elif get_token(list_tokens).lexical in ['LBRACE', 'ID', 'IF', 'WHILE', 'READ', 'PRINT']:
         node_c = command(list_tokens)
         node_opc = decl_command(list_tokens)
@@ -119,9 +130,10 @@ def decl2(list_tokens):
         node_e = expression(list_tokens)
         decl2(list_tokens)
         if node_op:
-            node = tree.Assing('Assing', node_e)
+            node = tree.Assing('Assing', node_e, None, None)
             node_op.set_children(node_e)
-            node_e.set_father(node_op)
+            if node_e:
+                node_e.set_father(node_op)
         return node_op
     return None
 
@@ -269,8 +281,9 @@ def equality(list_tokens):
     node_opc = equality_opc(list_tokens)
     if node_opc:
         node_opc.set_children(node_rel)
-        node_rel.set_father(node_opc)
-        return node_opc
+        if node_rel:
+            node_rel.set_father(node_opc)
+            return node_opc
     return node_rel
 
 
@@ -403,7 +416,7 @@ def term_opc(list_tokens):
         node_op.set_children(node_fact)
         if node_term:
             node_op.set_children(node_term)
-            node_term.set+father(node_op)
+            node_term.set_father(node_op)
         return node_op
     return None
 

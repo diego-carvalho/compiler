@@ -7,7 +7,7 @@ class ASTnode:
         self.value = None
 
     def __str__(self):
-        return "AST : [" +self.name+ " : [" +", ".join(self.children)+ "]]"
+        return self.name
 
     def __repr__(self):
         return "AST : [" +self.name+ " : [" +", ".join(self.children)+ "]]"
@@ -17,6 +17,13 @@ class ASTnode:
 
     def set_children(self, children):
         self.children = children
+
+
+    def print(self):
+        print("<"+self.name+">")
+        for n in self.children:
+            n.print()
+        print("</"+self.name+">")
 
 
 class IF(ASTnode):
@@ -35,7 +42,8 @@ class IF(ASTnode):
 
 class Assing(ASTnode):
     def __init__(self, name, left, right, father):
-        ASTnode.__init__(self, name)
+        ASTnode(name, father)
+        self.children = []
         self.children.append(left)
         self.children.append(right)
 
