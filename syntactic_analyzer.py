@@ -99,8 +99,10 @@ def declaration(list_tokens):
     op_type(list_tokens)
     node_id = match(list_tokens, 'ID')
     node_d = decl2(list_tokens)
-    node_d.set_children(node_id)
-    node_id.set_father(node_d)
+    if node_d:
+        node_d.set_children(node_id)
+    if node_id:
+        node_id.set_father(node_d)
     return node_d
 
 
@@ -118,8 +120,8 @@ def decl2(list_tokens):
         decl2(list_tokens)
         if node_op:
             node = tree.Assing('Assing', node_e)
-        node_op.set_children(node_e)
-        node_e.set_father(node_op)
+            node_op.set_children(node_e)
+            node_e.set_father(node_op)
         return node_op
     return None
 
@@ -279,8 +281,10 @@ def equality_opc(list_tokens):
         if node_opc:
             node_op.set_children(node_opc)
             node_opc.set_father(node_op)
-        node_op.set_children(node_rel)
-        node_rel.set_father(node_op)
+        if node_op:
+            node_op.set_children(node_rel)
+        if node_rel:
+            node_rel.set_father(node_op)
         return node_op
     return None
 
