@@ -1,0 +1,44 @@
+<ASTnode>
+<Attr>
+<Id op=vint/>
+<Num valor=120 type=integer/>
+</Attr>
+<Attr>
+<Id op=vfloat/>
+<Num valor=2.5 type=float/>
+</Attr>
+<Attr>
+<Id lexema=a type=integer/>
+<Attr>
+<Id lexema=b type=integer/>
+<Attr>
+<Id lexema=c type=integer/>
+</Attr>
+</Attr>
+</Attr>
+<Attr>
+<Id lexema=a type=integer/>
+<Num valor=1 type=integer/>
+</Attr>
+<Attr>
+<Id lexema=b type=integer/>
+<Num valor=1 type=integer/>
+</Attr>
+<Attr>
+<Id lexema=c type=integer/>
+<Num valor=1 type=integer/>
+</Attr>
+<If>
+<Attr>
+<Id lexema=a type=integer/>
+<ArithOp op=+/>
+<Id lexema=b type=/>
+</Attr>
+<Attr>
+<Id lexema=a type=integer/>
+<Num valor=45.55 type=float/>
+</Attr>
+</If>
+<While>
+</While>
+</ASTnode>
