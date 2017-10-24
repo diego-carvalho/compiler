@@ -41,7 +41,8 @@ def match(tk):
 
 def check(tk):
     if match(tk):
-        get_next_token(list_tokens)
+        if tk != 'EOF':
+            get_next_token(list_tokens)
         print('token reconhecido: ' + str(get_token(list_tokens)))
         return True
     else:
@@ -121,9 +122,9 @@ def attrNode(father,type):
         if match('ID'):
             check('ID')
         elif match('FLOAT_CONST'):
-            cnode = ast.ASTnode('Num')
-            cnode.set_value(get_token(list_tokens).name)
-            cnode.set_type("float")
+            bnode = ast.ASTnode('Num')
+            bnode.set_value(get_token(list_tokens).name)
+            bnode.set_type("float")
             node.addChildren(cnode)
             check('FLOAT_CONST')
         elif match('INTEGER_CONST'):
@@ -134,27 +135,28 @@ def attrNode(father,type):
             check('INTEGER_CONST')
 
         if get_token(list_tokens).lexical in AOP:
-            cnode = ast.ASTnode('ArithOp')
-            cnode.set_value(get_token(list_tokens).name)
-            node.addChildren(cnode)
+            anode = ast.ASTnode('ArithOp')
+            anode.set_value(get_token(list_tokens).name)
+            node.addChildren(anode)
             check(get_token(list_tokens).lexical)
+            anode.addChildren(cnode)
 
         if match('ID'):
             cnode = ast.ASTnode('Id')
             cnode.set_value(get_token(list_tokens).name)
-            node.addChildren(cnode)
+            anode.addChildren(cnode)
             check('ID')
         elif match('FLOAT_CONST'):
             cnode = ast.ASTnode('Num')
             cnode.set_value(get_token(list_tokens).name)
             cnode.set_type("float")
-            node.addChildren(cnode)
+            anode.addChildren(cnode)
             check('FLOAT_CONST')
         elif match('INTEGER_CONST'):
             cnode = ast.ASTnode('Num')
             cnode.set_value(get_token(list_tokens).name)
             cnode.set_type("integer")
-            node.addChildren(cnode)
+            anode.addChildren(cnode)
             check('INTEGER_CONST')
 
     if not match('PCOMMA'):
@@ -165,6 +167,7 @@ def attrNode(father,type):
 
 def exprNode(father):
     node = ast.ASTnode('Expr')
+    father.addChildren(node)
     if get_token(list_tokens).lexical == 'ID':
         cnode = ast.ASTnode('Id')
         cnode.set_value(get_token(list_tokens).name)
@@ -172,9 +175,9 @@ def exprNode(father):
         check(get_token(list_tokens).lexical)
 
         if get_token(list_tokens).lexical in LOP:
-            cnode = ast.ASTnode('LogicalOp')
-            cnode.set_value(get_token(list_tokens).name)
-            node.addChildren(cnode)
+            anode = ast.ASTnode('LogicalOp')
+            anode.set_value(get_token(list_tokens).name)
+            anode.addChildren(cnode)
             check(get_token(list_tokens).lexical)
         elif get_token(list_tokens).lexical in AOP:
             cnode = ast.ASTnode('ArithOp')
@@ -185,7 +188,7 @@ def exprNode(father):
         if get_token(list_tokens).lexical in ['INTEGER_CONST', 'FLOAT_CONST']:
             cnode = ast.ASTnode('Num')
             if get_token(list_tokens).lexical == 'INTEGER_CONST':
-                cnode.set_type('int')
+                cnode.set_type('integer')
             else:
                 cnode.set_type('float')
             cnode.set_value(get_token(list_tokens).name)
@@ -196,6 +199,16 @@ def exprNode(father):
             cnode.set_value(get_token(list_tokens).name)
             node.addChildren(cnode)
             check(get_token(list_tokens).lexical)
+
+        anode.addChildren(cnode)
+        node.addChildren(anode)
+
+    elif match('INTEGER_CONST'):
+        anode = ast.ASTnode('Num')
+        anode.set_type('integer')
+        anode.set_value(get_token(list_tokens).name)
+        node.addChildren(anode)
+        check('INTEGER_CONST')
 
 
 def ifNode(father):

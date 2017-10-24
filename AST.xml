@@ -1,44 +1,78 @@
 <ASTnode>
 <Attr>
-<Id op=vint/>
-<Num valor=120 type=integer/>
+<Id lexema='vint' type='integer'/>
+<Num valor='120' type='integer'/>
 </Attr>
 <Attr>
-<Id op=vfloat/>
-<Num valor=2.5 type=float/>
+<Id lexema='vfloat' type='float'/>
+<Id lexema='vfloat' type='float'/>
 </Attr>
 <Attr>
-<Id lexema=a type=integer/>
+<Id lexema='a' type='integer'/>
 <Attr>
-<Id lexema=b type=integer/>
+<Id lexema='b' type='integer'/>
 <Attr>
-<Id lexema=c type=integer/>
+<Id lexema='c' type='integer'/>
 </Attr>
 </Attr>
 </Attr>
 <Attr>
-<Id lexema=a type=integer/>
-<Num valor=1 type=integer/>
+<Id lexema='a' type='integer'/>
+<Num valor='1' type='integer'/>
 </Attr>
 <Attr>
-<Id lexema=b type=integer/>
-<Num valor=1 type=integer/>
+<Id lexema='b' type='integer'/>
+<Num valor='1' type='integer'/>
 </Attr>
 <Attr>
-<Id lexema=c type=integer/>
-<Num valor=1 type=integer/>
+<Id lexema='c' type='integer'/>
+<Num valor='1' type='integer'/>
 </Attr>
 <If>
+<Expr>
+<Id lexema='c' type=''/>
+<Num valor='1' type='integer'/>
+<LogicalOp op='=='>
+<Id lexema='c' type=''/>
+<Num valor='1' type='integer'/>
+</LogicalOp>
+</Expr>
 <Attr>
-<Id lexema=a type=integer/>
-<ArithOp op=+/>
-<Id lexema=b type=/>
+<Id lexema='a' type='integer'/>
+<ArithOp op='+'>
+<Id lexema='a' type='integer'/>
+<Id lexema='b' type=''/>
+</ArithOp>
 </Attr>
 <Attr>
-<Id lexema=a type=integer/>
-<Num valor=45.55 type=float/>
+<Id lexema='a' type='integer'/>
+<Id lexema='a' type='integer'/>
 </Attr>
 </If>
 <While>
+<Expr>
+<Num valor='1' type='integer'/>
+</Expr>
+<Attr>
+<Id lexema='a' type='integer'/>
+<Num valor='3' type='integer'/>
+</Attr>
 </While>
+<If>
+<Expr>
+<Id lexema='c' type=''/>
+<Num valor='12.67' type='float'/>
+<LogicalOp op='leq'>
+<Id lexema='c' type=''/>
+<Num valor='12.67' type='float'/>
+</LogicalOp>
+</Expr>
+<Attr>
+<Id lexema='a' type='integer'/>
+<ArithOp op='+'>
+<Id lexema='a' type='integer'/>
+<Id lexema='b' type=''/>
+</ArithOp>
+</Attr>
+</If>
 </ASTnode>

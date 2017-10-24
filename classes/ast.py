@@ -11,6 +11,8 @@ class ASTnode:
 
     def set_value(self, value):
         self.value = value
+        if self.value == '<=':
+            self.value == 'leq'
 
     def set_type(self, type):
         self.type = type
@@ -21,13 +23,17 @@ class ASTnode:
             for children in self.children:
                 children.print()
             print("</" + self.name + ">")
+        elif self.name in ['ArithOp', 'LogicalOp']:
+            print("<" + self.name + " op='" + self.value + "'>")
+            for children in self.children:
+                children.print()
+            print("</" + self.name + ">")
         else:
-            if self.name == 'Id' and not self.value in ['vint','vfloat']:
-                parameters = " lexema=" + self.value + " type=" + self.type
+            parameters = ""
+            if self.name == 'Id':
+                parameters = " lexema='" + self.value + "' type='" + self.type + "'"
             elif self.name == 'Num':
-                parameters = " valor=" + self.value + " type=" + self.type
-            else:
-                parameters = " op=" + self.value
+                parameters = " valor='" + self.value + "' type='" + self.type + "'"
             print("<" + self.name + parameters + "/>")
 
 
