@@ -1,9 +1,9 @@
+#TP1 - COMPILADORES
+
 Antonio M Filho
 Diego Carvalho
 
-TP1 - COMPILADORES
-
-Comandos
+## Comandos
 
 $ python AnalisadorLexico.py
 
