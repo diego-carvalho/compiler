@@ -114,7 +114,7 @@ def attrNode(father,type):
     cnode = ast.ASTnode('Id')
     cnode.set_value(get_token(list_tokens).name)
     cnode.set_type(type)
-    st[cnode.value] = type
+    st[cnode.value] = (type,get_token(list_tokens).line)
     node.addChildren(cnode)
     check('ID')
     if match('ATTR'):

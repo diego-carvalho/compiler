@@ -62,7 +62,7 @@
 <Expr>
 <Id lexema='c' type=''/>
 <Num valor='12.67' type='float'/>
-<LogicalOp op='leq'>
+<LogicalOp op='<='>
 <Id lexema='c' type=''/>
 <Num valor='12.67' type='float'/>
 </LogicalOp>

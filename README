@@ -5,6 +5,6 @@ TP1 - COMPILADORES
 
 Comandos
 
-$ python AnalisadorLexico.py
+$ python AnalisadorSintatico.py
 
-Será criada a saida out.txt com a tabela de tokens do arquivo de exemplo.
+Será criada a saida out.txt com a árvore .xml e a tabela de símbolos.
