@@ -1,8 +1,12 @@
 # coding: utf-8
-
+import sys
 
 import classes.ast as tree
 from classes.token import Token
+from classes.symbol import Symbol
+
+# global variables
+symbol_table = {}
 
 
 class Token_vector:   
@@ -31,13 +35,29 @@ def get_next_token(list_tokens):
     list_tokens.itr += 1
     return token
 
-def match(list_tokens, tk):
+def get_token_type(list_tokens):
+    global symbol_table
+    return symbol_table[get_token(list_tokens).lexical].type
+
+def match(list_tokens, tk, token_type=None):
     node = None
-    if get_token(list_tokens).lexical == tk:
+    global symbol_table
+
+    if get_token(list_tokens).name == tk:
         print('token reconhecido: ' + str(get_token(list_tokens)))
 
-        if get_token(list_tokens).lexical in ['INTEGER_CONST', 'FLOAT_CONST']:
-            node = tree.ASTnode(get_token(list_tokens).name, None)
+        if get_token(list_tokens).name in ['ID']:
+            if token_type != None:
+                if token_type == 'NOTYPE':
+                    token_type = get_token_type(list_tokens)
+                node = tree.ID(get_token(list_tokens).lexical, token_type)
+                sym = Symbol(get_token(list_tokens).lexical, token_type, get_token(list_tokens).line, None)
+                symbol_table[get_token(list_tokens).lexical] = sym
+            elif symbol_table.get(get_token(list_tokens).lexical, False):
+                symbol = symbol_table[get_token(list_tokens).lexical]
+                node = tree.ID(symbol.lexical, symbol.type)
+        elif get_token(list_tokens).name in ['ATTR', 'IF', 'WHILE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE', 'AND', 'OR', 'READ', 'PRINT']:
+            node = get_token(list_tokens)
 
         get_next_token(list_tokens)
 
@@ -60,377 +80,344 @@ def program(list_tokens):
     list_tokens.append(new_token)
 
     root = tree.ASTnode('MAIN', None)
-    current_node = root
-
-    root.set_children(decl_command(list_tokens))
+    decl_command(list_tokens, root)
 
     match(list_tokens, 'RBRACE')
-    if get_token(list_tokens).lexical == 'EOF':
+    if get_token(list_tokens).name == 'EOF':
         match(list_tokens, 'EOF')
         print('Fim da análise sintática.')
 
 
-def decl_command(list_tokens):
-    if get_token(list_tokens).lexical == 'INT' or get_token(list_tokens).lexical == 'FLOAT':
-        node_d = declaration(list_tokens)
-        node_opc = decl_command(list_tokens)
-        if node_opc:
-            node_opc.set_children(node_d)
-            node_d.set_father(node_opc)
-            return node_opc
-            print(node_opc)
-        else:
-            return node_d
-            print(node_d)
-    elif get_token(list_tokens).lexical in ['LBRACE', 'ID', 'IF', 'WHILE', 'READ', 'PRINT']:
-        node_c = command(list_tokens)
-        node_opc = decl_command(list_tokens)
-        if node_opc:
-            node_opc.set_children(node_c)
-            node_c.set_father(node_opc)
-            return node_opc
-        else:
-            return node_c
+def decl_command(list_tokens, root):
+    if get_token(list_tokens).name == 'INT' or get_token(list_tokens).name == 'FLOAT':
+        declaration(list_tokens, root)
+        decl_command(list_tokens, root)
+    elif get_token(list_tokens).name in ['LBRACE', 'ID', 'IF', 'WHILE', 'READ', 'PRINT']:
+        command(list_tokens, root)
+        decl_command(list_tokens, root)
 
     return None
 
 
-def declaration(list_tokens):
-    op_type(list_tokens)
-    node_id = match(list_tokens, 'ID')
-    node_d = decl2(list_tokens)
-    node_d.set_children(node_id)
-    node_id.set_father(node_d)
-    return node_d
+def declaration(list_tokens, root):
+    token_type = op_type(list_tokens)
+    node_id = match(list_tokens, 'ID', token_type)
+    decl2(list_tokens, node_id, root)
 
 
-def decl2(list_tokens):
-    if get_token(list_tokens).lexical == 'COMMA':
+def decl2(list_tokens, node_id, root):
+    if get_token(list_tokens).name == 'COMMA':
         # Adiciona id na tabela de simbolos porem n retorna nada pra tree
         match(list_tokens, 'COMMA')
-        match(list_tokens, 'ID')
-        decl2(list_tokens)
-    elif get_token(list_tokens).lexical == 'PCOMMA':
+        node_id = match(list_tokens, 'ID', node_id.type)
+        decl2(list_tokens, node_id, root)
+    elif get_token(list_tokens).name == 'PCOMMA':
         match(list_tokens, 'PCOMMA')
-    elif get_token(list_tokens).lexical == 'ATTR':
-        node_op = match(list_tokens, 'ATTR')
+    elif get_token(list_tokens).name == 'ATTR':
+        token_attr = match(list_tokens, 'ATTR')
         node_e = expression(list_tokens)
-        decl2(list_tokens)
-        if node_op:
-            node = tree.Assing('Assing', node_e)
-        node_op.set_children(node_e)
-        node_e.set_father(node_op)
-        return node_op
-    return None
+
+        # cria no e add root
+        node_attr = tree.Attr(token_attr.lexical, node_id, node_e)
+        root.set_children(node_attr)
+
+        decl2(list_tokens, node_id, root)
 
 
 def op_type(list_tokens):
-    if get_token(list_tokens).lexical == 'INT':
+    token_type = None
+    if get_token(list_tokens).name == 'INT':
         match(list_tokens, 'INT')
-    elif get_token(list_tokens).lexical == 'FLOAT':
+        token_type = get_token(list_tokens).name
+    elif get_token(list_tokens).name == 'FLOAT':
         match(list_tokens, 'FLOAT')
+        token_type = get_token(list_tokens).name
     else:
         print("Ocorreu um erro sintático, token esperado INT ou FLOAT: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
+    return token_type
 
 
-def command(list_tokens):
-    if get_token(list_tokens).lexical == 'LBRACE':
-        node_b = block(list_tokens)
-        return node_b
-    if get_token(list_tokens).lexical == 'ID':
-        attribution(list_tokens)
-    if get_token(list_tokens).lexical == 'IF':
-        command_if(list_tokens)
-    if get_token(list_tokens).lexical == 'WHILE':
-        command_while(list_tokens)
-    if get_token(list_tokens).lexical == 'READ':
-        command_read(list_tokens)
-    if get_token(list_tokens).lexical == 'PRINT':
-        command_print(list_tokens)
+def command(list_tokens, root):
+    if get_token(list_tokens).name == 'LBRACE':
+        block(list_tokens, root)
+    if get_token(list_tokens).name == 'ID':
+        attribution(list_tokens, root)
+    if get_token(list_tokens).name == 'IF':
+        command_if(list_tokens, root)
+    if get_token(list_tokens).name == 'WHILE':
+        command_while(list_tokens, root)
+    if get_token(list_tokens).name == 'READ':
+        command_read(list_tokens, root)
+    if get_token(list_tokens).name == 'PRINT':
+        command_print(list_tokens, root)
 
 
-def block(list_tokens):
+def block(list_tokens, root):
     match(list_tokens, 'LBRACE')
-    node_decl = decl_command(list_tokens)
+    decl_command(list_tokens, root)
     match(list_tokens, 'RBRACE')
-    return node_decl
 
 
-def attribution(list_tokens):
-    match(list_tokens, 'ID')
-    match(list_tokens, 'ATTR')
-    expression(list_tokens)
+def attribution(list_tokens, root):
+    node_id = match(list_tokens, 'ID', 'NOTYPE')
+    token_attr = match(list_tokens, 'ATTR', node_id.type)
+    node_e = expression(list_tokens)
+
+    # cria no e add root
+    node_attr = tree.Attr(token_attr.lexical, node_id, node_e)
+    root.set_children(node_attr)
+
     match(list_tokens, 'PCOMMA')
 
 
-def command_if(list_tokens):
-    node_if = match(list_tokens, 'IF')
+def command_if(list_tokens, root):
+    token_if = match(list_tokens, 'IF')
     match(list_tokens, 'LBRACKET')
     node_e = expression(list_tokens)
+
+    # cria no
+    node_if = tree.IF(token_if.lexical, node_e)
+
     match(list_tokens, 'RBRACKET')
-    node_c = command(list_tokens)
-    node_else = command_else(list_tokens)
-    if node_else:
-        node_if = tree.IF('IF', node_e, node_c, node_else, None)
-    else:
-        node_if = tree.IF('IF', node_e, node_c, None, None)
-    return node_if
+    command(list_tokens, node_if)
+    command_else(list_tokens, node_if)
+
+    # add root
+    root.set_children(node_if)
+    
 
 
-def command_else(list_tokens):
-    if get_token(list_tokens).lexical == 'ELSE':
+def command_else(list_tokens, node_if):
+    if get_token(list_tokens).name == 'ELSE':
         match(list_tokens, 'ELSE')
-        node_c = command(list_tokens)
-        return node_c
-    return None
+        command(list_tokens, node_if)
 
 
-def command_while(list_tokens):
-    match(list_tokens, 'WHILE')
+def command_while(list_tokens, root):
+    token_while = match(list_tokens, 'WHILE')
     match(list_tokens, 'LBRACKET')
-    expression(list_tokens)
+    node_e = expression(list_tokens)
+
+    # cria no
+    node_while = tree.While(token_while.lexical, node_e)
+    node_block = tree.ASTnode('BLOCK')
+
     match(list_tokens, 'RBRACKET')
-    command(list_tokens)
+    command(list_tokens, node_block)
+
+    # add root
+    node_while.set_children(node_block)
+    root.set_children(node_while)
 
 
-def command_read(list_tokens):
+def command_read(list_tokens, root):
     # READ
-    match(list_tokens, 'READ')
-    match(list_tokens, 'ID')
+    token_r = match(list_tokens, 'READ')
+    node_id = match(list_tokens, 'ID')
+
+    #cria no
+    node = tree.Read(token_r.lexical, node_id)
+
     match(list_tokens, 'PCOMMA')
 
+    # add root
+    root.set_children(node)
 
-def command_print(list_tokens):
+
+def command_print(list_tokens, root):
     # PRINT
-    match(list_tokens, 'PRINT')
+    token_p = match(list_tokens, 'PRINT')
     match(list_tokens, 'LBRACKET')
-    expression(list_tokens)
+    node_e = expression(list_tokens)
+
+    #cria no
+    node = tree.Print(token_p.lexical, node_e)
+
     match(list_tokens, 'RBRACKET')
     match(list_tokens, 'PCOMMA')
+    
+    # add root
+    root.set_children(node)
 
 
 def expression(list_tokens):
-    node_con = conjunction(list_tokens)
-    node_opc = expression_opc(list_tokens)
-    if node_opc:
-        node_opc.set_children(node_con)
-        node_con.set_father(node_opc)
-        return node_opc
-    return node_con
+    node = conjunction(list_tokens)
+    node = expression_opc(list_tokens, node)
+    return node
 
 
-def expression_opc(list_tokens):
-    if get_token(list_tokens).lexical == 'OR':
-        node = match(list_tokens, 'OR')
-        node_con = conjunction(list_tokens)
-        node_opc = expression_opc(list_tokens)
-        if node_opc:
-            node_opc.set_children(node_con)
-            node_con.set_father(node_opc)
-            node.set_children(node_opc)
-            node_opc.set_father(node)
-        else:
-            node.set_children(node_con)
-            node_con.set_father(node)
-        return node
-    return None
+def expression_opc(list_tokens, node):
+    if get_token(list_tokens).name == 'OR':
+        token_or = match(list_tokens, 'OR')
+        node_c = conjunction(list_tokens)
+
+        #cria no 
+        node = tree.LogicalOp(token_or.lexical, node, node_c)
+
+        node = expression_opc(list_tokens, node)
+    return node
 
 
 def conjunction(list_tokens):
-    node_e = equality(list_tokens)
-    node_opc = conjunction_opc(list_tokens)
-    if node_opc:
-        node_opc.set_children(node_e)
-        node_e.set_father(node_opc)
-        return node_opc
-    return node_e
+    node = equality(list_tokens)
+    node = conjunction_opc(list_tokens, node)
+    return node
 
 
-def conjunction_opc(list_tokens):
-    if get_token(list_tokens).lexical == 'AND':
-        node_op = match(list_tokens, 'AND')
+def conjunction_opc(list_tokens, node):
+    if get_token(list_tokens).name == 'AND':
+        token_and = match(list_tokens, 'AND')
         node_e = equality(list_tokens)
-        node_opc = conjunction_opc(list_tokens)
-        if node_opc:
-            node_op.set_children(node_opc)
-            node_opc.set_father(node_op)
-        node_op.set_children(node_e)
-        node_e.set_father(node_op)
-        return node_op
-    return None
+
+        #cria no
+        node = tree.LogicalOp(token_and.lexical, node, node_e)
+
+        node = conjunction_opc(list_tokens, node)
+    return  node
 
 
 def equality(list_tokens):
-    node_rel = relationship(list_tokens)
-    node_opc = equality_opc(list_tokens)
-    if node_opc:
-        node_opc.set_children(node_rel)
-        node_rel.set_father(node_opc)
-        return node_opc
-    return node_rel
+    node = relationship(list_tokens)
+    node = equality_opc(list_tokens, node)
+    return node
 
 
-def equality_opc(list_tokens):
-    if get_token(list_tokens).lexical == 'EQ' or get_token(list_tokens).lexical == 'NE':
-        node_op = op_equal(list_tokens)
-        node_rel = relationship(list_tokens)
-        node_opc = equality_opc(list_tokens)
-        if node_opc:
-            node_op.set_children(node_opc)
-            node_opc.set_father(node_op)
-        node_op.set_children(node_rel)
-        node_rel.set_father(node_op)
-        return node_op
-    return None
+def equality_opc(list_tokens, node):
+    if get_token(list_tokens).name == 'EQ' or get_token(list_tokens).name == 'NE':
+        print('Logo em baixo')
+        print(get_token(list_tokens))
+        token_op = op_equal(list_tokens)
+        node_r = relationship(list_tokens)
+
+        # cria no
+        node = tree.LogicalOp(token_op.lexical, node, node_r)
+
+        node = equality_opc(list_tokens, node)
+    return node
 
 
 def op_equal(list_tokens):
-    node = None
-    if get_token(list_tokens).lexical == 'EQ':
-        node = match(list_tokens, 'EQ')
-    elif get_token(list_tokens).lexical == 'NE':
-        node = match(list_tokens, 'NE')
+    token = None
+    if get_token(list_tokens).name == 'EQ':
+        token = match(list_tokens, 'EQ')
+    elif get_token(list_tokens).name == 'NE':
+        token = match(list_tokens, 'NE')
     else:
         print("Ocorreu um erro sintático, token esperado EQ ou NE: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
-    return node
+    print(token)
+    print("agora em cima")
+    return token
 
 
 def relationship(list_tokens):
-    node_add = addition(list_tokens)
-    node_rel = relationship_opc(list_tokens)
-    if node_rel:
-        node_rel.set_children(node_add)
-        node_add.set_father(node_rel)
-        return node_rel
-    return node_add
-
-
-def relationship_opc(list_tokens):
-    if get_token(list_tokens).lexical in ['LT', 'LE', 'GT', 'GE']:
-        node_op = op_rel(list_tokens)
-        node_rel = relationship(list_tokens)
-        node_opc = relationship_opc(list_tokens)
-        if node_opc:
-            node_op.set_children(node_opc)
-            node_opc.set_father(node_op)
-        node_op.set_children(node_rel)
-        node_rel.set_father(node_op)
-        return node_op
-    return None
-
-
-def op_rel(list_tokens):
-    node = None
-    if get_token(list_tokens).lexical == 'LT':
-        node = match(list_tokens, 'LT')
-    elif get_token(list_tokens).lexical == 'LE':
-        node = match(list_tokens, 'LE')
-    elif get_token(list_tokens).lexical == 'GT':
-        node = match(list_tokens, 'GT')
-    elif get_token(list_tokens).lexical == 'GE':
-        node = match(list_tokens, 'GE')
+    node = addition(list_tokens)
+    node = relationship_opc(list_tokens, node)
     return node
 
 
+def relationship_opc(list_tokens, node):
+    if get_token(list_tokens).name in ['LT', 'LE', 'GT', 'GE']:
+        token_op = op_rel(list_tokens)
+        node_r = relationship(list_tokens)
+
+        #cria no
+        node = tree.RelOp(token_op.lexical, node, node_r)
+
+        node = relationship_opc(list_tokens, node)
+    return node
+
+
+def op_rel(list_tokens):
+    token = None
+    if get_token(list_tokens).name == 'LT':
+        token = match(list_tokens, 'LT')
+    elif get_token(list_tokens).name == 'LE':
+        token = match(list_tokens, 'LE')
+    elif get_token(list_tokens).name == 'GT':
+        token = match(list_tokens, 'GT')
+    elif get_token(list_tokens).name == 'GE':
+        token = match(list_tokens, 'GE')
+    return token
+
+
 def addition(list_tokens):
-    # 4 + 5
-    # 4
-    node_term = term(list_tokens)
-    # + 5
-    node_add = addition_opc(list_tokens)
-    if node_add:
-        node_add.set_children(node_term)
-        node_term.set_father(node_add)
-        return node_add
-    return node_term
+    node = term(list_tokens)
+    node = addition_opc(list_tokens, node)
+    return node
 
 
-def addition_opc(list_tokens):
-    if get_token(list_tokens).lexical == 'PLUS' or get_token(list_tokens).lexical == 'MINUS':
-        # +
-        node_op = op_addition(list_tokens)
-        # 5
-        node_term = term(list_tokens)
-        node_opc = addition_opc(list_tokens)
-        if node_opc:
-            pass
+def addition_opc(list_tokens, node):
+    if get_token(list_tokens).name == 'PLUS' or get_token(list_tokens).name == 'MINUS':
+        node_left = node
+        token_op = op_addition(list_tokens)
+        node_t = term(list_tokens)
+
+        # cria no
+        node = tree.ArithOp(token_op.lexical, node_left, node_t)
+
+        node = addition_opc(list_tokens, node)
+    return node
         
 
 
 def op_addition(list_tokens):
-    node = None
-    if get_token(list_tokens).lexical == 'PLUS':
-        node = match(list_tokens, 'PLUS')
-    elif get_token(list_tokens).lexical == 'MINUS':
-        node = match(list_tokens, 'MINUS')
+    token = None
+    if get_token(list_tokens).name == 'PLUS':
+        token = match(list_tokens, 'PLUS')
+    elif get_token(list_tokens).name == 'MINUS':
+        token = match(list_tokens, 'MINUS')
     else:
         print("Ocorreu um erro sintático, token esperado PLUS ou MINUS: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
-    return node
+    return token
 
 
 def term(list_tokens):
-    # = 4 * 5
-    # 4
-    node_fact = factor(list_tokens)
-    # * 5
-    node_term = term_opc(list_tokens)
-    if node_term:
-        node_term.set_children(node_fact)
-        node_fact.set_father(node_term)
-        return node_term
-    return None
+    node = factor(list_tokens)
+    node = term_opc(list_tokens, node)
+    return node
 
 
-def term_opc(list_tokens):
-    if get_token(list_tokens).lexical == 'MULT' or get_token(list_tokens).lexical == 'DIV':
-        # *
-        node_op = op_mult(list_tokens)
-        # 5
-        node_fact = factor(list_tokens)
-        # ; -> None or / 10
-        node_term = term_opc(list_tokens)
-        node_fact.set_father(node_op)
-        node_op.set_children(node_fact)
-        if node_term:
-            node_op.set_children(node_term)
-            node_term.set+father(node_op)
-        return node_op
-    return None
+def term_opc(list_tokens, node):
+    if get_token(list_tokens).name == 'MULT' or get_token(list_tokens).name == 'DIV':
+        token_op = op_mult(list_tokens)
+        node_f = factor(list_tokens)
+        
+        #cria no
+        node = tree.ArithOp(token_op.lexical, node, node_f)
+
+        term_opc(list_tokens, node)
+    return node
 
     
 def op_mult(list_tokens):
-    node = None
-    if get_token(list_tokens).lexical == 'MULT':
-        node = match(list_tokens, 'MULT')
-    elif get_token(list_tokens).lexical == 'DIV':
-        node = match(list_tokens, 'DIV')
+    token = None
+    if get_token(list_tokens).name == 'MULT':
+        token = match(list_tokens, 'MULT')
+    elif get_token(list_tokens).name == 'DIV':
+        token = match(list_tokens, 'DIV')
     else:
         print("Ocorreu um erro sintático, token esperado MULT ou DIV: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
-    return node
+    return token
 
 
 def factor(list_tokens):
     node = None
-    if get_token(list_tokens).lexical == 'ID':
-        match(list_tokens, 'ID')
-        # se existir ID na tabela de simbolos retorna o valor, se n acho que eh erro
-    elif get_token(list_tokens).lexical == 'INTEGER_CONST':
+    if get_token(list_tokens).name == 'ID':
+        node = match(list_tokens, 'ID')
+    elif get_token(list_tokens).name == 'INTEGER_CONST':
         node = match(list_tokens, 'INTEGER_CONST')
-    elif get_token(list_tokens).lexical == 'FLOAT_CONST':
+    elif get_token(list_tokens).name == 'FLOAT_CONST':
         node = match(list_tokens, 'FLOAT_CONST')
-    elif get_token(list_tokens).lexical == 'LBRACKET':
-        #aqui preciso pegar a expressao como possivel valor
+    elif get_token(list_tokens).name == 'LBRACKET':
         match(list_tokens, 'LBRACKET')
-        expression(list_tokens)
+        node = expression(list_tokens)
         match(list_tokens, 'RBRACKET')
     return node
 
-# variables used in all program
-current_node = None
 
 def run(tokens):
     list_tokens = Token_vector(tokens)

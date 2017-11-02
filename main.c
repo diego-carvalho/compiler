@@ -23,3 +23,8 @@ int main()
       }
 
 }
+
+
+LogicalOp   == != || &&
+RelOp       > < <= >=
+ArithOp     + - * /

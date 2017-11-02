@@ -6,8 +6,7 @@ class Symbol:
         self.value = value
 
     def __str__(self):
-    	return "Symbol [lexical: " + self.lexical + " , line: " + str(self.line) + " , type: " + self.type + " , value: " + self.value + "]"
+        return "Symbol [lexical: " + self.lexical + " , line: " + str(self.line) + " , type: " + self.type + " , value: " + self.value + "]"
 
-	def __repr__(self):
-		return "Symbol [lexical: " + self.lexical + " , line: " + str(self.line) + " , type: " + self.type + " , value: " + self.value + "]" + "\n"
-    
+    def __repr__(self):
+        return "Symbol [lexical: " + self.lexical + " , line: " + str(self.line) + " , type: " + self.type + " , value: " + self.value + "]" + "\n"
