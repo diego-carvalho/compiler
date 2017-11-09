@@ -16,7 +16,7 @@ class ASTnode:
         self.father = father
 
     def set_children(self, children):
-        self.children = children
+        self.children.append(children)
 
 
 class IF(ASTnode):
@@ -69,8 +69,10 @@ class ID(ASTnode):
 
 
 class Num(ASTnode):
-    def __init__(self, lexical, father=None):
+    def __init__(self, lexical, token_type, token_value, father=None):
         ASTnode.__init__(self, lexical)
+        self.type = token_type
+        self.value = token_value
 
     def __str__(self):
         return "Num : [" +self.lexical+ " : [" +", ".join(self.children)+ "]]"

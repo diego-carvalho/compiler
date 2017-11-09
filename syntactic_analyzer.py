@@ -7,6 +7,7 @@ from classes.symbol import Symbol
 
 # global variables
 symbol_table = {}
+treeRoot = None
 
 
 class Token_vector:   
@@ -39,6 +40,12 @@ def get_token_type(list_tokens):
     global symbol_table
     return symbol_table[get_token(list_tokens).lexical].type
 
+def get_type_num(list_tokens):
+    if get_token(list_tokens).name == 'INTEGER_CONST':
+        return 'INTEGER', int(get_token(list_tokens).lexical)
+    elif get_token(list_tokens).name == 'FLOAT_CONST':
+        return 'FLOAT', float(get_token(list_tokens).lexical)
+
 def match(list_tokens, tk, token_type=None):
     node = None
     global symbol_table
@@ -58,6 +65,9 @@ def match(list_tokens, tk, token_type=None):
                 node = tree.ID(symbol.lexical, symbol.type)
         elif get_token(list_tokens).name in ['ATTR', 'IF', 'WHILE', 'PLUS', 'MINUS', 'MULT', 'DIV', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE', 'AND', 'OR', 'READ', 'PRINT']:
             node = get_token(list_tokens)
+        elif get_token(list_tokens).name in ['INTEGER_CONST', 'FLOAT_CONST']:
+            token_type, token_value = get_type_num(list_tokens)
+            node = tree.Num(get_token(list_tokens).lexical, token_type, token_value)
 
         get_next_token(list_tokens)
 
@@ -86,6 +96,7 @@ def program(list_tokens):
     if get_token(list_tokens).name == 'EOF':
         match(list_tokens, 'EOF')
         print('Fim da análise sintática.')
+    return root
 
 
 def decl_command(list_tokens, root):
@@ -127,11 +138,11 @@ def decl2(list_tokens, node_id, root):
 def op_type(list_tokens):
     token_type = None
     if get_token(list_tokens).name == 'INT':
+        token_type = get_token(list_tokens).name
         match(list_tokens, 'INT')
-        token_type = get_token(list_tokens).name
     elif get_token(list_tokens).name == 'FLOAT':
-        match(list_tokens, 'FLOAT')
         token_type = get_token(list_tokens).name
+        match(list_tokens, 'FLOAT')
     else:
         print("Ocorreu um erro sintático, token esperado INT ou FLOAT: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
@@ -141,15 +152,15 @@ def op_type(list_tokens):
 def command(list_tokens, root):
     if get_token(list_tokens).name == 'LBRACE':
         block(list_tokens, root)
-    if get_token(list_tokens).name == 'ID':
+    elif get_token(list_tokens).name == 'ID':
         attribution(list_tokens, root)
-    if get_token(list_tokens).name == 'IF':
+    elif get_token(list_tokens).name == 'IF':
         command_if(list_tokens, root)
-    if get_token(list_tokens).name == 'WHILE':
+    elif get_token(list_tokens).name == 'WHILE':
         command_while(list_tokens, root)
-    if get_token(list_tokens).name == 'READ':
+    elif get_token(list_tokens).name == 'READ':
         command_read(list_tokens, root)
-    if get_token(list_tokens).name == 'PRINT':
+    elif get_token(list_tokens).name == 'PRINT':
         command_print(list_tokens, root)
 
 
@@ -180,7 +191,12 @@ def command_if(list_tokens, root):
     node_if = tree.IF(token_if.lexical, node_e)
 
     match(list_tokens, 'RBRACKET')
-    command(list_tokens, node_if)
+
+
+    node_block = tree.ASTnode('BLOCK')
+    command(list_tokens, node_block)
+    node_if.set_children(node_block)
+
     command_else(list_tokens, node_if)
 
     # add root
@@ -191,7 +207,9 @@ def command_if(list_tokens, root):
 def command_else(list_tokens, node_if):
     if get_token(list_tokens).name == 'ELSE':
         match(list_tokens, 'ELSE')
-        command(list_tokens, node_if)
+        node_block = tree.ASTnode('BLOCK')
+        command(list_tokens, node_block)
+        node_if.set_children(node_block)
 
 
 def command_while(list_tokens, root):
@@ -285,8 +303,6 @@ def equality(list_tokens):
 
 def equality_opc(list_tokens, node):
     if get_token(list_tokens).name == 'EQ' or get_token(list_tokens).name == 'NE':
-        print('Logo em baixo')
-        print(get_token(list_tokens))
         token_op = op_equal(list_tokens)
         node_r = relationship(list_tokens)
 
@@ -306,8 +322,6 @@ def op_equal(list_tokens):
     else:
         print("Ocorreu um erro sintático, token esperado EQ ou NE: " + str(get_token(list_tokens)))
         get_next_token(list_tokens)
-    print(token)
-    print("agora em cima")
     return token
 
 
@@ -419,6 +433,17 @@ def factor(list_tokens):
     return node
 
 
+def getTree():
+    global treeRoot
+    return treeRoot
+
+
+def getSymbolTable():
+    global symbol_table
+    return symbol_table
+
+
 def run(tokens):
+    global treeRoot
     list_tokens = Token_vector(tokens)
-    program(list_tokens)
+    treeRoot = program(list_tokens)
