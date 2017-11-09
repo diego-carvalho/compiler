@@ -1,12 +1,15 @@
-# TP1 - COMPILADORES
+# Compiler
 
-Antonio M Filho
-Diego Carvalho
+A C compiler written in Python for learning purposes
 
-## Comandos
+## Requirements
+
+Python from version 3+ available at: (https://www.python.org/).
+
+## How to use
+
+To run the compiler, first write a code in C in a file named main.c then run the command below. 
 
 ```
-$ python AnalisadorLexico.py
+$ python3 run.py
 ```
-
-Será criada a saida out.txt com a tabela de tokens do arquivo de exemplo.
