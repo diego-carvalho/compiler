@@ -89,10 +89,14 @@ def program(list_tokens):
     new_token = Token('eof', 'EOF', (list_tokens.tokens[len(list_tokens.tokens) - 1].line + 1))
     list_tokens.append(new_token)
 
-    root = tree.ASTnode('MAIN', None)
+    root = tree.ASTNode('MAIN', None)
     decl_command(list_tokens, root)
 
     match(list_tokens, 'RBRACE')
+
+    with open("out.txt", "a") as out:
+        root.generate_code(out)
+
     if get_token(list_tokens).name == 'EOF':
         match(list_tokens, 'EOF')
         print('Fim da análise sintática.')
@@ -192,8 +196,7 @@ def command_if(list_tokens, root):
 
     match(list_tokens, 'RBRACKET')
 
-
-    node_block = tree.ASTnode('BLOCK')
+    node_block = tree.ASTNode('BLOCK')
     command(list_tokens, node_block)
     node_if.set_children(node_block)
 
@@ -203,11 +206,10 @@ def command_if(list_tokens, root):
     root.set_children(node_if)
     
 
-
 def command_else(list_tokens, node_if):
     if get_token(list_tokens).name == 'ELSE':
         match(list_tokens, 'ELSE')
-        node_block = tree.ASTnode('BLOCK')
+        node_block = tree.ASTNode('BLOCK')
         command(list_tokens, node_block)
         node_if.set_children(node_block)
 
@@ -219,7 +221,7 @@ def command_while(list_tokens, root):
 
     # cria no
     node_while = tree.While(token_while.lexical, node_e)
-    node_block = tree.ASTnode('BLOCK')
+    node_block = tree.ASTNode('BLOCK')
 
     match(list_tokens, 'RBRACKET')
     command(list_tokens, node_block)
