@@ -118,7 +118,7 @@ class Attr(ASTNode):
         self.children[0].generate_code(out)
         self.children[1].generate_r_value_code(out)
         self.children[0].addr.temp = self.children[1].addr.temp
-        # TODO
+        out.write(self.children[0].addr.name + " = " + self.children[1].addr.name + "\n")
 
 
 class ID(ASTNode):
@@ -136,8 +136,8 @@ class ID(ASTNode):
 
     def generate_code(self, out):
         self.operand = Operand()
-        self.operand.tableEntry = None  # TODO: REF TABLE
-        self.operand.name = None  # TODO: REF TABLE
+        self.operand.tableEntry = self.lexical
+        self.operand.name = self.lexical
         self.addr = self.operand
 
     def generate_r_value_code(self, out):
@@ -211,7 +211,7 @@ class LogicalOp(ASTNode):
         return "Num : [" + self.lexical + " : [" + ", ".join(self.children) + "]]"
 
     def generate_branch_code(self, out):
-        if self.lexical == "OR":
+        if self.lexical == "||":
             self.children[0].true_label = self.true_label
             self.children[0].false_label = Label()
             self.children[1].true_label = self.true_label
@@ -229,7 +229,7 @@ class LogicalOp(ASTNode):
                           self.children[1].false_label.name + "\n"
                           )
                 out.write("goto " + self.children[1].true_label.name + "\n")
-        elif self.lexical == "AND":
+        elif self.lexical == "&&":
             self.children[0].true_label = Label()
             self.children[0].false_label = self.false_label
             self.children[1].true_label = self.true_label
@@ -261,6 +261,14 @@ class RelOp(ASTNode):
     def __repr__(self):
         return "RelOp : [" + self.lexical + " : [" + ", ".join(self.children) + "]]"
 
+    def generate_branch_code(self, out):
+        self.children[0].generate_branch_code(out)
+        self.children[1].generate_branch_code(out)
+        test = self.children[0].addr.name + " " + self.lexical + " " + \
+               self.children[1].addr.name
+        out.write("if " + test + " goto " + self.true_label.name + "\n")
+        out.write("goto " + self.false_label.name + "\n")
+
 
 class ArithOp(ASTNode):
     def __init__(self, lexical, left, right, father=None):
@@ -281,7 +289,9 @@ class ArithOp(ASTNode):
         self.addr = Operand()
         self.addr.temp = temp
         self.addr.name = temp.name
-        # TODO
+        out.write(temp.name + " = " + self.children[0].addr.name + " " + self.lexical +
+                  " " + self.children[1].addr.name + "\n"
+                 )
 
     def generate_r_value_code(self, out):
         self.children[0].generate_r_value_code(out)
@@ -290,4 +300,6 @@ class ArithOp(ASTNode):
         self.addr = Operand()
         self.addr.temp = temp
         self.addr.name = temp.name
-        # TODO
+        out.write(temp.name + " = " + self.children[0].addr.name + " " + self.lexical +
+                  " " + self.children[1].addr.name + "\n"
+                 )

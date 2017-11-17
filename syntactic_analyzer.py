@@ -94,6 +94,7 @@ def program(list_tokens):
 
     match(list_tokens, 'RBRACE')
 
+    open("out.txt","w").close()
     with open("out.txt", "a") as out:
         root.generate_code(out)
 

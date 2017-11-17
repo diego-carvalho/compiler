@@ -7,9 +7,12 @@ class Operand:
 
 
 class Temp:
+    temp_number = 0
+
     def __init__(self):
         self.n = None
-        self.name = None
+        self.name = "t" + str(Temp.temp_number)
+        Temp.temp_number += 1
 
 
 class Label(Operand):
