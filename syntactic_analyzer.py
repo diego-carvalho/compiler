@@ -310,7 +310,7 @@ def equality_opc(list_tokens, node):
         node_r = relationship(list_tokens)
 
         # cria no
-        node = tree.LogicalOp(token_op.lexical, node, node_r)
+        node = tree.RelOp(token_op.lexical, node, node_r)
 
         node = equality_opc(list_tokens, node)
     return node

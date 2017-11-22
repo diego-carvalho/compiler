@@ -224,7 +224,7 @@ class LogicalOp(ASTNode):
             else:
                 out.write(self.children[0].false_label.name + ": ")
             self.children[1].generate_branch_code(out)
-            if self.children[1].addr():
+            if self.children[1].addr:
                 out.write("if " + self.children[1].addr.name + " == 0 goto " +
                           self.children[1].false_label.name + "\n"
                           )
@@ -254,6 +254,7 @@ class RelOp(ASTNode):
         ASTNode.__init__(self, lexical)
         self.children.append(left)
         self.children.append(right)
+        self.addr = None
 
     def __str__(self):
         return "RelOp : [" + self.lexical + " : [" + ", ".join(self.children) + "]]"
