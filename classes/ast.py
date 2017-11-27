@@ -68,7 +68,7 @@ class IF(ASTNode):
             else:
                 out.write(self.children[0].true_label.name + ": ")
             self.children[1].generate_code(out)
-        out.write(self.next.name + ": \n")
+        out.write(self.next.name + ": ")
 
 
 class While(ASTNode):
@@ -269,6 +269,25 @@ class RelOp(ASTNode):
                self.children[1].addr.name
         out.write("if " + test + " goto " + self.true_label.name + "\n")
         out.write("goto " + self.false_label.name + "\n")
+
+    def generate_r_value_code(self, out):
+        self.children[0].generate_branch_code(out)
+        self.children[1].generate_branch_code(out)
+        test = self.children[0].addr.name + " " + self.lexical + " " + \
+               self.children[1].addr.name
+        temp = Temp()
+        self.true_label = Label()
+        self.false_label = Label()
+        self.next = Label()
+        self.addr = Operand()
+        self.addr.temp = temp
+        self.addr.name = temp.name
+        out.write("if " + test + " goto " + self.true_label.name + "\n")
+        out.write("goto " + self.false_label.name + "\n")
+        out.write(self.true_label.name + ": " + temp.name + " = 1\n")
+        out.write("goto " + self.next.name + "\n")
+        out.write(self.false_label.name + ": " + temp.name + " = 0\n")
+        out.write(self.next.name + ": ")
 
 
 class ArithOp(ASTNode):
